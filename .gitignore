@@ -1,0 +1,19 @@
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Cache de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Archivos de Persistencia y Logs de Operaciones
+*.log
+sor_history.txt
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
