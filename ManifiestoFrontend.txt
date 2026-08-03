@@ -1,0 +1,46 @@
+====================================================================
+MANIFIESTO DE DESPLIEGUE MANUAL - HISTORIA DE USUARIO: HU1 (Frontend)
+REPOSITORIO: taller2-frontend
+ENTORNO OBJETIVO: PC 2 (Servidor Frontend - Linux/Ubuntu)
+====================================================================
+
+1. REQUISITOS PREVIOS EN EL PC 2:
+   - Asegurarse de tener instalado Node.js (v18 o v20) y npm.
+   - Si no están instalados, ejecutar en el PC 2:
+     sudo apt update && sudo apt install -y nodejs npm ufw
+
+2. CONFIGURACIÓN DEL CORTAFUEGOS (UFW EN PC 2):
+   - Habilitar la entrada únicamente para el puerto del Frontend (3000).
+   - Ejecutar como usuario sudo:
+     sudo ufw default deny incoming
+     sudo ufw default allow outgoing
+     sudo ufw allow 3000/tcp
+     sudo ufw --force enable
+
+3. EXTRACCIÓN E INSTALACIÓN DE DEPENDENCIAS:
+   - Descomprimir 'entrega_HU1_frontend.zip' en /opt/taller2-frontend:
+     sudo mkdir -p /opt/taller2-frontend
+     sudo unzip -o entrega_HU1_frontend.zip -d /opt/taller2-frontend
+     cd /opt/taller2-frontend
+
+   - Instalar las dependencias de producción:
+     npm install --production
+
+4. CONFIGURACIÓN DE RED E INYECCIÓN DE VARIABLES:
+   - Exportar la IP del PC 1 (Backend). Reemplazar <IP_PC1_BACKEND> por la IP real:
+     export BACKEND_URL="http://<IP_PC1_BACKEND>:8080"
+     export PORT=3000
+
+5. EJECUCIÓN DEL SERVICIO:
+   - Iniciar el servidor Frontend en segundo plano:
+     nohup npm start > frontend.log 2>&1 &
+
+6. VERIFICACIÓN DE OPERATIVIDAD (PRUEBA DE HUMO):
+   - Abrir el navegador en el PC 2 e ingresar a: http://localhost:3000
+   - Probar la HU1 (Suma) ingresando dos números en el formulario UI.
+
+====================================================================
+EN CASO DE FALLO:
+- Si la interfaz no carga o muestra error de conexión al Backend, verificar
+  'frontend.log' y responder con un ticket escrito a Devs.
+====================================================================
