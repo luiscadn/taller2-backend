@@ -1,9 +1,6 @@
-import os
-import time
 import logging
 from datetime import datetime, timezone
-from typing import List
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -19,7 +16,7 @@ logger = logging.getLogger("taller2-backend")
 
 app = FastAPI(
     title="Taller 2 DevOps Backend",
-    description="API REST de Operaciones Matemáticas y Telemetría para Simulación DevOps (Universidad ICESI)",
+    description="API REST de Operaciones Matemáticas (HU1 - Servicio de Suma)",
     version="1.0.0"
 )
 
@@ -32,10 +29,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Constantes y Variables Globales de Estado
-START_TIME = time.time()
-HISTORY_FILE = os.path.abspath("sor_history.txt")
-
 # Schemas Pydantic
 class OperationRequest(BaseModel):
     a: float = Field(..., description="Primer operando")
@@ -46,38 +39,26 @@ class OperationResponse(BaseModel):
     operation: str
     timestamp: str
 
-class HistoryResponse(BaseModel):
-    history: List[str]
-
-class HealthResponse(BaseModel):
-    status: str
-    uptime_seconds: float
-    persistence_writable: bool
-    timestamp: str
-
-def save_to_sor_history(operation_str: str) -> bool:
-    """Guarda un registro de la operación exitosa en el archivo de persistencia local (SoR)."""
-    timestamp = datetime.now(timezone.utc).isoformat()
-    entry = f"[{timestamp}] {operation_str}\n"
-    try:
-        with open(HISTORY_FILE, "a", encoding="utf-8") as f:
-            f.write(entry)
-        logger.info(f"SoR Persistido: {operation_str}")
-        return True
-    except Exception as e:
-        logger.error(f"Error al escribir en SoR history ({HISTORY_FILE}): {e}")
-        return False
-
-# ------------------- RUTAS HTTP (HU1 - HU5) -------------------
-
 @app.get("/")
 def read_root():
     return {
         "service": "taller2-backend",
         "status": "running",
+        "hu": "HU1",
         "docs": "/docs"
     }
 
+# HU1: Servicio de Suma (Único Endpoint Operacional en HU1)
+@app.post("/api/sum", response_model=OperationResponse)
+def calculate_sum(payload: OperationRequest):
+    result = payload.a + payload.b
+    op_str = f"SUMA: {payload.a} + {payload.b} = {result}"
+    logger.info(op_str)
+    return OperationResponse(
+        result=result,
+        operation=op_str,
+        timestamp=datetime.now(timezone.utc).isoformat()
+    )
 
 if __name__ == "__main__":
     import uvicorn

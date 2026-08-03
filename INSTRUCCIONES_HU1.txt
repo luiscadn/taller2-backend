@@ -1,0 +1,29 @@
+====================================================================
+INSTRUCCIONES DE DESPLIEGUE - HISTORIA DE USUARIO 1 (Backend API)
+REPOSITORIO: taller2-backend
+ENTORNO OBJETIVO: Servidor Backend (Linux/Ubuntu) - Puerto: 8080
+====================================================================
+
+1. REQUISITOS PREVIOS E INSTALACIÓN DE DEPENDENCIAS BASE:
+   - Crear y activar entorno virtual Python:
+     python3 -m venv venv
+     source venv/bin/activate
+
+   - Instalar dependencias requeridas (FastAPI y Uvicorn):
+     pip install -r requirements.txt
+
+2. EJECUCIÓN DEL SERVICIO EN PUERTO 8080:
+   - Iniciar el servidor FastAPI en segundo plano:
+     source venv/bin/activate
+     nohup uvicorn main:app --host 0.0.0.0 --port 8080 > backend.log 2>&1 &
+
+3. VERIFICACIÓN DE OPERATIVIDAD (PRUEBA DE HUMO):
+   - Verificar estado del servicio:
+     curl http://localhost:8080/
+
+   - Probar endpoint de Suma (HU1):
+     curl -X POST http://localhost:8080/api/sum \
+          -H "Content-Type: application/json" \
+          -d '{"a": 10, "b": 5}'
+
+====================================================================
