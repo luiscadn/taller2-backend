@@ -1,10 +1,10 @@
-# 🚀 Repositorio 1: taller2-backend
+# Repositorio 1: taller2-backend
 
 Servicio API REST para el **Taller 2: Simulación de Despliegue DevOps — La Pared de la Confusión y Automatización** de la Universidad ICESI. Desarrollado en Python con FastAPI y Uvicorn.
 
 ---
 
-## 📋 Historias de Usuario Implementadas
+## Historias de Usuario Implementadas
 
 - **HU1 (Servicio de Suma)**: `POST /api/sum` → Recibe `{"a": float, "b": float}`, retorna `{"result": float}` y persiste la operación en `sor_history.txt`.
 - **HU2 (Multi-Operación)**:
@@ -16,7 +16,7 @@ Servicio API REST para el **Taller 2: Simulación de Despliegue DevOps — La Pa
 
 ---
 
-## 📂 Estructura del Repositorio
+## Estructura del Repositorio
 
 ```text
 taller2-backend/
@@ -30,7 +30,7 @@ taller2-backend/
 
 ---
 
-## 🛠️ Guía de Despliegue Manual — Fase 1 (Silos Organizacionales / ZIP)
+## Guía de Despliegue Manual — Fase 1 (Silos Organizacionales / ZIP)
 
 En la Fase 1, la comunicación entre **Devs** y **Ops** se realiza a través de un canal asincrónico empaquetando el código en un archivo `.zip`.
 
@@ -43,7 +43,7 @@ En la Fase 1, la comunicación entre **Devs** y **Ops** se realiza a través de 
    ```
 
 2. **Configurar la Regla de Firewall (UFW)**:
-   > ⚠️ **RESTRICCIÓN DE RED**: El cortafuegos debe bloquear todo el tráfico entrante excepto el puerto del Backend (`8080`).
+   > **RESTRICCIÓN DE RED**: El cortafuegos debe bloquear todo el tráfico entrante excepto el puerto del Backend (`8080`).
    ```bash
    sudo ufw default deny incoming
    sudo ufw default allow outgoing
@@ -77,7 +77,7 @@ En la Fase 1, la comunicación entre **Devs** y **Ops** se realiza a través de 
 
 ---
 
-## ⚡ Guía de Despliegue Automatizado — Fase 2 (Adopción DevOps / IaC)
+## Guía de Despliegue Automatizado — Fase 2 (Adopción DevOps / IaC)
 
 En la Fase 2, se eliminan los silos y el equipo ejecuta el script de automatización `deploy.sh`:
 
@@ -99,7 +99,7 @@ El script `deploy.sh` realizará automáticamente:
 
 ---
 
-## 🧪 Pruebas Rápidas con cURL
+## Pruebas Rápidas con cURL
 
 ```bash
 # HU1: Suma
