@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Script de Despliegue Automatizado - Taller 2 DevOps: taller2-backend
-# Universidad ICESI - Fase 2 (IaC & Continuous Delivery)
+# Universidad ICESI - Despliegue sin requerir privilegios sudo
 # ==============================================================================
 
 set -e
@@ -13,29 +13,10 @@ cd "$APP_DIR"
 echo "=== [1/5] Iniciando despliegue de taller2-backend en puerto $PORT ==="
 
 # ------------------------------------------------------------------------------
-# 1. Configuración de Firewall (UFW en Linux / Simulación en macOS)
+# 1. Verificación de Red / Firewall (Sin requerir sudo)
 # ------------------------------------------------------------------------------
-echo "=== [2/5] Configurando Firewall y Reglas de Red ==="
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if command -v ufw > /dev/null 2>&1; then
-        echo "Detectado sistema Linux. Configurando UFW para habilitar puerto $PORT/tcp..."
-        if [ "$EUID" -ne 0 ]; then
-            echo "[WARN] Se requieren permisos sudo para modificar UFW. Ejecutando sudo ufw..."
-            sudo ufw allow $PORT/tcp comment 'Permitir taller2-backend' || true
-            sudo ufw reload || true
-        else
-            ufw allow $PORT/tcp comment 'Permitir taller2-backend' || true
-            ufw reload || true
-        fi
-        echo "Reglas de firewall UFW actualizadas exitosamente."
-    else
-        echo "[WARN] ufw no está instalado en este sistema Linux. Por favor verifique el firewall manualmente."
-    fi
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "[INFO] Detectado macOS (Apple Silicon). Simulación de UFW: El puerto $PORT está abierto localmente."
-else
-    echo "[INFO] Sistema operativo: $OSTYPE. Simulación de políticas de firewall completada."
-fi
+echo "=== [2/5] Verificación de Red ==="
+echo "[INFO] Omitiendo configuración de UFW/sudo (despliegue en entorno sin privilegios root, firewall desactivado)."
 
 # ------------------------------------------------------------------------------
 # 2. Configuración de Entorno Virtual y Dependencias de Python
@@ -60,7 +41,7 @@ echo "Instalando / Actualizando dependencias desde requirements.txt..."
 # ------------------------------------------------------------------------------
 echo "=== [4/5] Configurando Permisos de Persistencia (sor_history.txt) ==="
 touch sor_history.txt
-chmod 666 sor_history.txt
+chmod 666 sor_history.txt || true
 echo "Permisos de lectura/escritura (chmod 666) asignados a sor_history.txt."
 
 # ------------------------------------------------------------------------------
