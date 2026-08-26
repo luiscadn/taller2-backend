@@ -41,7 +41,7 @@ jobs:
           SERVER_PORT: ${{ secrets.SERVER_PORT || 22 }}
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -p "$SERVER_PORT" "$SERVER_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -T 10 -p "$SERVER_PORT" "$SERVER_HOST" >> ~/.ssh/known_hosts
 
       - name: Sincronizar código con el servidor
         env:
@@ -49,8 +49,8 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_PORT: ${{ secrets.SERVER_PORT || 22 }}
         run: |
-          ssh -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "mkdir -p ~/backend-deploy"
-          scp -P "$SERVER_PORT" main.py requirements.txt Dockerfile .dockerignore "$SERVER_USER@$SERVER_HOST:~/backend-deploy/"
+          ssh -o ConnectTimeout=10 -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "mkdir -p ~/backend-deploy"
+          scp -o ConnectTimeout=10 -P "$SERVER_PORT" main.py requirements.txt Dockerfile .dockerignore "$SERVER_USER@$SERVER_HOST:~/backend-deploy/"
 
       - name: Construir y desplegar contenedor Docker en el servidor remoto
         env:
@@ -58,7 +58,7 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_PORT: ${{ secrets.SERVER_PORT || 22 }}
         run: |
-          ssh -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" '
+          ssh -o ConnectTimeout=10 -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" '
             set -euo pipefail
             cd ~/backend-deploy
             echo "[INFO] Deteniendo versiones previas del contenedor..."
