@@ -19,6 +19,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Verificar que la aplicación importa correctamente
         run: python -c "import main"
+      - name: Verificar que la imagen Docker compila
+        run: docker build -t calculator-backend:ci-check .
 
   deploy-remote:
     needs: build-and-test
@@ -48,9 +50,9 @@ jobs:
           SERVER_PORT: ${{ secrets.SERVER_PORT || 22 }}
         run: |
           ssh -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "mkdir -p ~/backend-deploy"
-          scp -P "$SERVER_PORT" main.py requirements.txt deploy.sh "$SERVER_USER@$SERVER_HOST:~/backend-deploy/"
+          scp -P "$SERVER_PORT" main.py requirements.txt Dockerfile .dockerignore "$SERVER_USER@$SERVER_HOST:~/backend-deploy/"
 
-      - name: Desplegar en el servidor remoto con deploy.sh
+      - name: Construir y desplegar contenedor Docker en el servidor remoto
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
@@ -59,9 +61,18 @@ jobs:
           ssh -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" '
             set -euo pipefail
             cd ~/backend-deploy
-            chmod +x deploy.sh
-            ./deploy.sh
+            echo "[INFO] Deteniendo versiones previas del contenedor..."
+            docker stop calculator-backend || true
+            docker rm calculator-backend || true
+            echo "[INFO] Compilando imagen Docker Multi-Stage..."
+            docker build -t calculator-backend:latest .
+            echo "[INFO] Levantando nuevo contenedor en puerto 8080..."
+            docker run -d \
+              --name calculator-backend \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              calculator-backend:latest
             echo "[INFO] Validando disponibilidad del servicio..."
-            sleep 3
-            curl -f http://localhost:8080/health
+            sleep 5
+            curl -f http://localhost:8080/
           '

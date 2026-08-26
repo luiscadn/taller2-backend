@@ -1,0 +1,12 @@
+.git
+.github
+venv
+.venv
+env
+__pycache__
+*.pyc
+.pytest_cache
+sor_history.txt
+backend.log
+SETUP_SSH_KEYS.txt
+README.md
