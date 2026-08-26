@@ -19,7 +19,7 @@ logger = logging.getLogger("taller2-backend")
 app = FastAPI(
     title="Taller 2 DevOps Backend",
     description="API REST de Operaciones Matemáticas (HU3 - Persistencia SoR e Historial)",
-    version="1.2.1"
+    version="1.2.2"
 )
 
 # Marca de tiempo de arranque: cambia cada vez que el contenedor se reinicia,
