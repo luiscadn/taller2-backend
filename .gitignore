@@ -17,3 +17,8 @@ sor_history.txt
 .vscode/
 .idea/
 .DS_Store
+
+# Secretos temporales (no deben subirse a git)
+*.pem
+id_ed25519*
+deploy_key*
