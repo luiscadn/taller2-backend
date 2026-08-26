@@ -19,8 +19,12 @@ logger = logging.getLogger("taller2-backend")
 app = FastAPI(
     title="Taller 2 DevOps Backend",
     description="API REST de Operaciones Matemáticas (HU3 - Persistencia SoR e Historial)",
-    version="1.2.0"
+    version="1.2.1"
 )
+
+# Marca de tiempo de arranque: cambia cada vez que el contenedor se reinicia,
+# así puedes confirmar visualmente que un deploy nuevo reemplazó al anterior.
+STARTUP_TIME = datetime.now(timezone.utc).isoformat()
 
 # Habilitar CORS para permitir llamadas desde el Frontend (PC 2 / localhost)
 app.add_middleware(
@@ -68,7 +72,17 @@ def read_root():
         "service": "taller2-backend",
         "status": "running",
         "hu": "HU3",
+        "version": app.version,
+        "started_at": STARTUP_TIME,
         "docs": "/docs"
+    }
+
+# Endpoint simple para confirmar visualmente que el deploy más reciente llegó
+@app.get("/api/version")
+def get_version():
+    return {
+        "version": app.version,
+        "started_at": STARTUP_TIME
     }
 
 # HU1: Servicio de Suma
