@@ -1,72 +1,65 @@
 name: Backend Continuous Integration & Deployment
-
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
-  # ==========================================
-  # CI: Compilación y Pruebas Unitarias (Cloud)
-  # ==========================================
   build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del código fuente
         uses: actions/checkout@v4
-
       - name: Configurar JDK 21 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
           cache: 'gradle'
-
       - name: Ejecutar Suite de Pruebas con Gradle
         run: |
           chmod +x gradlew
           ./gradlew test --no-daemon
 
-  # ==========================================
-  # CD: Despliegue en Self-Hosted Runner (Tu Máquina / Sala)
-  # ==========================================
-  deploy-local:
+  deploy-remote:
     needs: build-and-test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: self-hosted
+    runs-on: self-hosted   # el runner solo dispara el deploy, no construye la imagen aquí
     steps:
-      - name: Checkout en el Runner Host
+      - name: Checkout en el Runner
         uses: actions/checkout@v4
 
-      - name: Construir y Desplegar Contenedor Docker (Script Defensivo)
-        run: |
-          set -euo pipefail
+      - name: Sincronizar código con el servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          source: "."
+          target: "~/backend-deploy"
 
-          on_exit() {
-            local exit_code=$?
-            if [ $exit_code -ne 0 ]; then
-              echo "[ERROR] El despliegue del Backend falló (Código: $exit_code)" >&2
-            else
-              echo "[SUCCESS] Contenedor de Backend desplegado correctamente."
-            fi
-          }
-          trap on_exit EXIT
-
-          echo "[INFO] Deteniendo versiones previas del contenedor..."
-          docker stop calculator-backend || true
-          docker rm calculator-backend || true
-
-          echo "[INFO] Compilando imagen Docker Multi-Stage..."
-          docker build -t calculator-backend:latest .
-
-          echo "[INFO] Levantando nuevo contenedor en puerto 8080..."
-          docker run -d \
-            --name calculator-backend \
-            --restart unless-stopped \
-            -p 8080:8080 \
-            calculator-backend:latest
-
-          echo "[INFO] Validando disponibilidad del servicio..."
-          sleep 5
-          curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/ || exit 0
+      - name: Construir y desplegar en el servidor remoto
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            cd ~/backend-deploy
+            echo "[INFO] Deteniendo versiones previas del contenedor..."
+            docker stop calculator-backend || true
+            docker rm calculator-backend || true
+            echo "[INFO] Compilando imagen Docker Multi-Stage..."
+            docker build -t calculator-backend:latest .
+            echo "[INFO] Levantando nuevo contenedor en puerto 8080..."
+            docker run -d \
+              --name calculator-backend \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              calculator-backend:latest
+            echo "[INFO] Validando disponibilidad del servicio..."
+            sleep 5
+            curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/ || exit 0
