@@ -28,28 +28,40 @@ jobs:
       - name: Checkout en el Runner
         uses: actions/checkout@v4
 
-      - name: Sincronizar código con el servidor
-        uses: appleboy/scp-action@v0.1.7
+      - name: Cargar clave SSH (sin Docker, corre nativo en el runner)
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
-          source: "."
-          target: "~/backend-deploy"
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Confiar en el host remoto
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT || 22 }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "$SERVER_PORT" "$SERVER_HOST" >> ~/.ssh/known_hosts
+
+      - name: Sincronizar código con el servidor
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT || 22 }}
+        run: |
+          ssh -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" "mkdir -p ~/backend-deploy"
+          scp -P "$SERVER_PORT" main.py requirements.txt deploy.sh "$SERVER_USER@$SERVER_HOST:~/backend-deploy/"
 
       - name: Desplegar en el servidor remoto con deploy.sh
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
-          script: |
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT || 22 }}
+        run: |
+          ssh -p "$SERVER_PORT" "$SERVER_USER@$SERVER_HOST" '
             set -euo pipefail
             cd ~/backend-deploy
             chmod +x deploy.sh
             ./deploy.sh
             echo "[INFO] Validando disponibilidad del servicio..."
             sleep 3
-            curl -f http://localhost:8080/health || exit 1
+            curl -f http://localhost:8080/health
+          '
